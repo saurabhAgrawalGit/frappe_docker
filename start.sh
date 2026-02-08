@@ -2,17 +2,17 @@
 
 cd /home/frappe/frappe-bench
 
-SITE="frappedocker-production-b75f.up.railway.app"
+SITE=$SITE_NAME
 
-echo "Railway PORT is: $PORT"
+echo "Using Railway PORT: $PORT"
 
-# Configure frappe to use Railway port
+# Configure ports correctly
 bench set-config -g webserver_port $PORT
-bench set-config -g socketio_port $PORT
+bench set-config -g socketio_port $((PORT+1))
 
 # Create site if not exists
 if [ ! -d "sites/$SITE" ]; then
-    echo "Creating new site..."
+    echo "Creating new site: $SITE"
 
     bench new-site $SITE \
         --admin-password $ADMIN_PASSWORD \
@@ -20,11 +20,10 @@ if [ ! -d "sites/$SITE" ]; then
         --no-mariadb-socket
 
     bench --site $SITE install-app leave_management
-
     bench use $SITE
 fi
 
-echo "Starting Frappe on port $PORT"
+# CRITICAL FIX: bind to 0.0.0.0
+echo "Starting Frappe on 0.0.0.0:$PORT"
 
-# Start frappe on correct port
-bench start
+bench serve --port $PORT --host 0.0.0.0
