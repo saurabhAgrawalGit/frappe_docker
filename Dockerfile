@@ -22,14 +22,14 @@ RUN apt-get remove -y nodejs libnode-dev nodejs-doc || true
 RUN apt-get purge -y nodejs libnode-dev nodejs-doc || true
 RUN apt-get autoremove -y
 
-# Install Node.js 20 (required for your leave_management frontend)
+# Install Node.js 20
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 RUN apt-get install -y nodejs
 
 # Install Yarn globally
 RUN npm install -g yarn
 
-# Set Python 3.11 as default
+# Set Python 3.11 default
 RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
 
 # Install bench and PostgreSQL driver
@@ -41,20 +41,28 @@ RUN useradd -ms /bin/bash frappe
 USER frappe
 WORKDIR /home/frappe
 
-# Copy apps.json (contains leave_management repo)
+# Copy apps.json
 COPY development/apps.json /home/frappe/apps.json
 
-# Initialize bench and install apps
+# Initialize bench
 RUN bench init frappe-bench \
     --frappe-branch version-15 \
     --python python3.11 \
     --apps_path /home/frappe/apps.json
 
-# Switch to bench directory
+# Go to bench folder
 WORKDIR /home/frappe/frappe-bench
 
-# Expose port
+# Copy startup script
+COPY start.sh /home/frappe/start.sh
+
+# Give execute permission
+USER root
+RUN chmod +x /home/frappe/start.sh
+USER frappe
+
+# Expose Frappe port
 EXPOSE 8000
 
-# Start frappe
-CMD ["bench", "start"]
+# Start using startup script
+CMD ["/home/frappe/start.sh"]
