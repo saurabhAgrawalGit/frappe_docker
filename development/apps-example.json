@@ -1,6 +1,10 @@
 [
   {
-    "url": "https://github.com/frappe/erpnext.git",
+    "url": "https://github.com/frappe/frappe",
     "branch": "version-15"
+  },
+  {
+    "url": "https://github.com/saurabhAgrawalGit/leave_management",
+    "branch": "main"
   }
 ]
