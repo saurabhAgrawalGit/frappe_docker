@@ -1,33 +1,39 @@
-FROM python:3.11-slim
+FROM ubuntu:22.04
 
-USER root
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Install required packages
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
+    python3.11 \
+    python3.11-venv \
+    python3.11-dev \
+    python3-pip \
     git \
+    curl \
     redis-server \
+    nodejs \
+    npm \
     mariadb-client \
     libpq-dev \
     gcc \
-    curl \
-    nodejs \
-    npm \
     && rm -rf /var/lib/apt/lists/*
 
+# Set python3.11 as default
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+
 # Install bench
-RUN pip install frappe-bench
+RUN pip3 install frappe-bench
 
 # Create frappe user
 RUN useradd -ms /bin/bash frappe
 
 USER frappe
-
 WORKDIR /home/frappe
 
 # Copy apps.json
 COPY development/apps.json /home/frappe/apps.json
 
-# Initialize bench with correct Python version
+# Initialize bench using Python 3.11
 RUN bench init frappe-bench --frappe-branch version-15 --python python3.11
 
 WORKDIR /home/frappe/frappe-bench
