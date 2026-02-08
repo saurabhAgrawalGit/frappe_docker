@@ -46,7 +46,7 @@ COPY development/apps.json /home/frappe/apps.json
 
 # Initialize bench
 RUN bench init frappe-bench \
-    --frappe-branch version-15 \
+    --frappe-branch version-16 \
     --python python3.11 \
     --apps_path /home/frappe/apps.json
 
