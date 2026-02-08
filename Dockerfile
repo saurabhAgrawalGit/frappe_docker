@@ -11,14 +11,20 @@ RUN apt-get update && apt-get install -y \
     git \
     curl \
     redis-server \
-    nodejs \
-    npm \
     mariadb-client \
     libpq-dev \
     gcc \
+    npm \
     && rm -rf /var/lib/apt/lists/*
 
-# Set python3.11 as default
+# Install Node.js 18
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+RUN apt-get install -y nodejs
+
+# Install Yarn
+RUN npm install -g yarn
+
+# Set python3.11 default
 RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
 
 # Install bench
@@ -33,12 +39,12 @@ WORKDIR /home/frappe
 # Copy apps.json
 COPY development/apps.json /home/frappe/apps.json
 
-# Initialize bench using Python 3.11
+# Initialize bench
 RUN bench init frappe-bench --frappe-branch version-15 --python python3.11
 
 WORKDIR /home/frappe/frappe-bench
 
-# Install your app
+# Install apps
 RUN bench get-app --apps_path /home/frappe/apps.json
 
 EXPOSE 8000
