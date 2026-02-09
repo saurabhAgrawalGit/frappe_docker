@@ -56,6 +56,7 @@ WORKDIR /home/frappe
 # Copy apps.json
 COPY development/apps.json /home/frappe/apps.json
 
+
 # Initialize bench (Frappe v16)
 RUN bench init frappe-bench \
     --frappe-branch version-16 \
