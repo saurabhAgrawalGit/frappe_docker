@@ -35,7 +35,8 @@ RUN npm install -g yarn
 
 # Install bench
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
-RUN pip install --no-cache-dir frappe-bench psycopg2-binary
+RUN pip install --no-cache-dir frappe-bench psycopg2-binary gunicorn
+
 
 # Create frappe user
 RUN useradd -ms /bin/bash frappe
