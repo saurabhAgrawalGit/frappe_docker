@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.14-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js 24 (required)
+# Install Node 24 (required)
 RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
     && apt-get install -y nodejs
 
@@ -48,7 +48,7 @@ RUN bench init frappe-bench \
 
 WORKDIR /home/frappe/frappe-bench
 
-# Install your custom app
+# Install custom app
 RUN bench get-app leave_management https://github.com/saurabhAgrawalGit/leave_management || true
 
 # Copy startup script
