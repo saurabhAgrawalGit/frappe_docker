@@ -1,70 +1,33 @@
 #!/bin/bash
 
+echo "Starting Frappe..."
+
+service cron start
+redis-server --daemonize yes
+
 cd /home/frappe/frappe-bench
 
-SITE=${SITE_NAME:-frappedocker-production-b75f.up.railway.app}
-ADMIN_PASS=${ADMIN_PASSWORD:-admin}
-PORT=8000
+# Create site if not exists
+if [ ! -d "sites/${SITE_NAME}" ]; then
+    echo "Creating new site..."
 
-echo "========================================"
-echo "Starting Frappe Railway Deployment"
-echo "Site: $SITE"
-echo "Port: $PORT"
-echo "========================================"
-
-# Show bench and frappe version
-echo "Checking Bench Version..."
-bench --version
-
-echo "Checking Installed Apps Version..."
-bench version
-
-# Set configs
-echo "Setting global configs..."
-bench set-config -g webserver_port $PORT
-bench set-config -g db_type postgres
-
-# Check if site exists
-if [ ! -d "sites/$SITE" ]; then
-
-    echo "----------------------------------------"
-    echo "Site does not exist. Creating new site..."
-    echo "----------------------------------------"
-
-    bench new-site $SITE \
-        --admin-password $ADMIN_PASS \
+    bench new-site ${SITE_NAME} \
         --db-type postgres \
+        --db-host ${DB_HOST} \
+        --db-port ${DB_PORT} \
+        --db-name ${DB_NAME} \
+        --db-user ${DB_USER} \
+        --db-password ${DB_PASSWORD} \
+        --admin-password ${ADMIN_PASSWORD} \
         --no-mariadb-socket
 
-    echo "Site created successfully."
+    bench use ${SITE_NAME}
 
-    echo "Installing leave_management app..."
-    bench --site $SITE install-app leave_management || true
-
-    echo "App installation completed."
-
-else
-
-    echo "----------------------------------------"
-    echo "Site already exists. Skipping creation."
-    echo "----------------------------------------"
-
+    bench migrate
 fi
 
-# Show site list
-echo "Available sites:"
-ls -l sites/
+bench use ${SITE_NAME}
 
-# Set default site
-echo "Setting default site..."
-bench use $SITE
+echo "Starting bench..."
 
-# Final version check
-echo "========================================"
-echo "Final Bench Version:"
-bench version
-echo "========================================"
-
-# Start server
-echo "Starting Frappe server on port $PORT..."
-bench serve --port $PORT
+bench start --port ${PORT:-8000}
