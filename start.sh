@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -e
 
 echo "Starting Frappe on Render..."
@@ -8,16 +7,10 @@ cd /home/frappe/frappe-bench
 
 SITE=${SITE_NAME:-site1.local}
 
-# Start Redis
-echo "Starting Redis..."
-redis-server --daemonize yes
-
-sleep 3
-
-# Create site folder
+# Create site directory
 mkdir -p sites/$SITE
 
-# Create site_config.json manually (NO bench new-site)
+# Create site_config.json
 cat > sites/$SITE/site_config.json <<EOF
 {
  "db_type": "postgres",
@@ -26,24 +19,20 @@ cat > sites/$SITE/site_config.json <<EOF
  "db_name": "$DB_NAME",
  "db_user": "$DB_USER",
  "db_password": "$DB_PASSWORD",
- "redis_cache": "redis://127.0.0.1:6379",
- "redis_queue": "redis://127.0.0.1:6379",
- "redis_socketio": "redis://127.0.0.1:6379"
+ "redis_cache": "$REDIS_URL",
+ "redis_queue": "$REDIS_URL",
+ "redis_socketio": "$REDIS_URL"
 }
 EOF
 
-# Set current site
 echo "$SITE" > sites/currentsite.txt
 
-# DO NOT run bench new-site
-# DO NOT run bench start
+echo "Starting Gunicorn from bench env..."
 
-echo "Starting gunicorn..."
-
-exec gunicorn \
- --chdir /home/frappe/frappe-bench \
- --bind 0.0.0.0:${PORT:-10000} \
- --workers 2 \
- --threads 4 \
- --timeout 120 \
- frappe.app:application
+exec /home/frappe/frappe-bench/env/bin/gunicorn \
+  --chdir /home/frappe/frappe-bench \
+  --bind 0.0.0.0:${PORT} \
+  --workers 2 \
+  --threads 4 \
+  --timeout 120 \
+  frappe.app:application
