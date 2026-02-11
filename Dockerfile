@@ -3,7 +3,7 @@ FROM python:3.14-slim
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies
+# Install system dependencies INCLUDING cron
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -19,7 +19,12 @@ RUN apt-get update && apt-get install -y \
     libmariadb-dev-compat \
     libffi-dev \
     libssl-dev \
+    cron \
+    procps \
     && rm -rf /var/lib/apt/lists/*
+
+# verify cron exists (IMPORTANT)
+RUN which crontab && crontab -l || true
 
 # Install Node 24 (required)
 RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
@@ -41,7 +46,7 @@ WORKDIR /home/frappe
 # Verify Python version
 RUN python --version
 
-# Initialize bench
+# Initialize bench (NOW THIS WILL WORK)
 RUN bench init frappe-bench \
     --frappe-branch version-16 \
     --python python
