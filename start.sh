@@ -5,6 +5,9 @@ echo "Starting Frappe on Render..."
 
 cd /home/frappe/frappe-bench
 
+# Activate bench virtual environment (CRITICAL FIX)
+source env/bin/activate
+
 SITE=${SITE_NAME:-site1.local}
 
 # Create site directory
@@ -27,9 +30,15 @@ EOF
 
 echo "$SITE" > sites/currentsite.txt
 
-echo "Starting Gunicorn from bench env..."
+echo "Python path:"
+which python
 
-exec /home/frappe/frappe-bench/env/bin/gunicorn \
+echo "Gunicorn path:"
+which gunicorn
+
+echo "Starting gunicorn..."
+
+exec gunicorn \
   --chdir /home/frappe/frappe-bench \
   --bind 0.0.0.0:${PORT} \
   --workers 2 \
