@@ -1,9 +1,9 @@
-FROM python:3.11.9-slim
+FROM python:3.13-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies required for Frappe v16
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -19,18 +19,16 @@ RUN apt-get update && apt-get install -y \
     libmariadb-dev-compat \
     libffi-dev \
     libssl-dev \
-    nodejs \
-    npm \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Node 24 (REQUIRED for frappe v16)
+# Install Node.js 24 (required)
 RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
     && apt-get install -y nodejs
 
 # Install yarn
 RUN npm install -g yarn
 
-# Install bench and postgres driver
+# Install bench
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir frappe-bench psycopg2-binary
 
@@ -40,10 +38,10 @@ RUN useradd -ms /bin/bash frappe
 USER frappe
 WORKDIR /home/frappe
 
-# Verify python version
+# Verify Python version
 RUN python --version
 
-# Initialize bench (THIS WILL NOW WORK)
+# Initialize bench
 RUN bench init frappe-bench \
     --frappe-branch version-16 \
     --python python
