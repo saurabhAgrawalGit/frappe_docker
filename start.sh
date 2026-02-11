@@ -1,43 +1,49 @@
 #!/bin/bash
 
-echo "Starting services..."
+set -e
 
-service cron start
-redis-server --daemonize yes
+echo "Starting Frappe on Render..."
 
 cd /home/frappe/frappe-bench
 
 SITE=${SITE_NAME:-site1.local}
 
-echo "Using site: $SITE"
+# Start Redis
+echo "Starting Redis..."
+redis-server --daemonize yes
 
-# Create site only if not exists
-if [ ! -f "sites/$SITE/site_config.json" ]; then
+sleep 3
 
-    echo "Creating new site with PostgreSQL..."
+# Create site folder
+mkdir -p sites/$SITE
 
-    bench new-site $SITE \
-        --db-type postgres \
-        --db-host "$DB_HOST" \
-        --db-port "$DB_PORT" \
-        --db-name "$DB_NAME" \
-        --db-user "$DB_USER" \
-        --db-password "$DB_PASSWORD" \
-        --admin-password "${ADMIN_PASSWORD:-admin}" \
-        --no-mariadb-socket
+# Create site_config.json manually (NO bench new-site)
+cat > sites/$SITE/site_config.json <<EOF
+{
+ "db_type": "postgres",
+ "db_host": "$DB_HOST",
+ "db_port": $DB_PORT,
+ "db_name": "$DB_NAME",
+ "db_user": "$DB_USER",
+ "db_password": "$DB_PASSWORD",
+ "redis_cache": "redis://127.0.0.1:6379",
+ "redis_queue": "redis://127.0.0.1:6379",
+ "redis_socketio": "redis://127.0.0.1:6379"
+}
+EOF
 
-    bench use $SITE
+# Set current site
+echo "$SITE" > sites/currentsite.txt
 
-    bench migrate
-fi
+# DO NOT run bench new-site
+# DO NOT run bench start
 
-# Force use correct site
-bench use $SITE
+echo "Starting gunicorn..."
 
-# IMPORTANT FIX: overwrite config to ensure correct host
-bench set-config -g db_host "$DB_HOST"
-bench set-config -g db_port "$DB_PORT"
-
-echo "Starting bench..."
-
-bench start --port ${PORT:-8000}
+exec gunicorn \
+ --chdir /home/frappe/frappe-bench \
+ --bind 0.0.0.0:${PORT:-10000} \
+ --workers 2 \
+ --threads 4 \
+ --timeout 120 \
+ frappe.app:application
