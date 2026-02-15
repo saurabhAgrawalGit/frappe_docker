@@ -2,9 +2,9 @@
 set -e
 
 echo "Starting Frappe on Render..."
-echo "Listing sites folder:"
+echo "Listing sites folder:==========================================================="
 ls -l /home/frappe/frappe-bench/sites
-
+echo "Listing sites folder:======================================================"
 
 cd /home/frappe/frappe-bench
 
